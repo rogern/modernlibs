@@ -1,2 +1,2 @@
 # modernlibs
-Expermiments with modern libs in Scala
+Experiments with modern libs in Scala
