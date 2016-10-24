@@ -14,11 +14,14 @@ class ModernLibsService(db: DB) {
     case r @ POST -> Root / "ml" => newPerson(r)
   }
 
-  private def getPersons = Ok(db.list().asJson)
+  private def getPersons = db.list().flatMap(_.map(r => Ok(r.asJson)) | InternalServerError())
 
-  private def getPerson(name: String) = db.find(name).fold(NotFound())(r => Ok(r.asJson))
+  private def getPerson(name: String) = db.find(name).flatMap(_.map(_.fold(NotFound())(r => Ok(r.asJson))) | InternalServerError())
 
   private def newPerson(r: Request) = {
-    r.as(jsonOf[Person]).flatMap(p => Created(db.save(p).asJson))
+    r.as(jsonOf[Person]).flatMap(p => db.save(p).flatMap(_.map {
+      case 1 => Created()
+      case _ => Conflict()
+    } | InternalServerError()))
   }
 }
