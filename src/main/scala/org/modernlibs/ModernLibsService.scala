@@ -23,7 +23,7 @@ class ModernLibsService(db: DB) {
   private def listPersons = {
     for {
       dbResult <- db.list()
-      result <- dbResult.map(r => Ok(r.asJson)) getOrElse InternalServerError()
+      result <- dbResult.map(r => Ok(r.asJson)) getOrElse InternalServerError("server error, probably DB down")
     } yield result
   }
 
@@ -32,7 +32,7 @@ class ModernLibsService(db: DB) {
     names.toNel.fold(BadRequest()) { nel =>
       for {
         dbResult <- db.findAll(nel)
-        result <- dbResult.map(r => Ok(r.asJson)) getOrElse InternalServerError()
+        result <- dbResult.map(r => Ok(r.asJson)) getOrElse InternalServerError("server error, probably DB down")
       } yield result
     }
   }
@@ -40,7 +40,7 @@ class ModernLibsService(db: DB) {
   private def getPerson(name: String) = {
     for {
       dbResult <- db.find(name)
-      result <- dbResult.map(_.fold(NotFound())(r => Ok(r.asJson))) getOrElse InternalServerError()
+      result <- dbResult.map(_.fold(NotFound())(r => Ok(r.asJson))) getOrElse InternalServerError("server error, probably DB down")
     } yield result
   }
 
@@ -51,7 +51,7 @@ class ModernLibsService(db: DB) {
       response <- dbResponse.map {
         case 1 => Created()
         case _ => Conflict()
-      } getOrElse InternalServerError()
+      } getOrElse InternalServerError("server error, probably DB down")
     } yield response
   }
 }
