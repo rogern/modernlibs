@@ -1,11 +1,12 @@
 package org.modernlibs
 
-import org.http4s._, org.http4s.dsl._
-
+import org.http4s._
+import org.http4s.dsl._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s.circe.{jsonEncoder, jsonOf}
 import cats.implicits._
+import fs2.Task
 
 class ModernLibsService(db: DB) {
 
@@ -44,7 +45,7 @@ class ModernLibsService(db: DB) {
     } yield result
   }
 
-  private def newPerson(r: Request) = {
+  private def newPerson(r: Request): Task[Response] = {
     for {
       person <- r.as(jsonOf[Person])
       dbResponse <- db.save(person)

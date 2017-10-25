@@ -4,6 +4,7 @@ import cats.data.NonEmptyList
 import doobie.imports._
 import fs2.Task
 import fs2.interop.cats._
+import fs2.util.Attempt
 
 case class Person(name: String, age: Int)
 
@@ -23,13 +24,13 @@ class DB {
     "org.mariadb.jdbc.Driver", "jdbc:mariadb://localhost:3306/test", "root", ""
   )
 
-  def list() = queryList().transact(xa).attempt
+  def list(): Task[Attempt[Seq[Person]]] = queryList().transact(xa).attempt
 
-  def findAll(names: NonEmptyList[String]) = queryFindAll(names).transact(xa).attempt
+  def findAll(names: NonEmptyList[String]): Task[Attempt[Seq[Person]]] = queryFindAll(names).transact(xa).attempt
 
-  def find(n: String) = queryFind(n).transact(xa).attempt
+  def find(n: String): Task[Attempt[Option[Person]]] = queryFind(n).transact(xa).attempt
 
-  def save(person: Person) = insertNewPerson(person).run.transact(xa).attempt
+  def save(person: Person): Task[Attempt[Int]] = insertNewPerson(person).run.transact(xa).attempt
 
   private def queryList(): ConnectionIO[List[Person]] =
     sql"select name, age from modernlibs".query[Person].list
@@ -37,10 +38,10 @@ class DB {
   private def insertNewPerson(person: Person): Update0 =
     sql"insert into modernlibs (name, age) values (${person.name}, ${person.age})".update
 
-  private def queryFind(n: String) =
+  private def queryFind(n: String): ConnectionIO[Option[Person]] =
     sql"select name, age from modernlibs where name = $n".query[Person].option
 
-  private def queryFindAll(names: NonEmptyList[String]) = {
+  private def queryFindAll(names: NonEmptyList[String]): ConnectionIO[List[Person]] = {
     (fr"select name, age from modernlibs where " ++ Fragments.in(fr"name", names)).query[Person].list
   }
 
