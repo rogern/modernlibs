@@ -15,7 +15,7 @@ class ModernLibsService(db: DB) {
   val expand = (l: String) => l.split(',').map(_.trim).toList.filter(_.nonEmpty)
 
   val modernLibsService = HttpService {
-    case GET -> Root / "ml" :? NamesQueryParamMatcher(names) => getPersons(expand(names))
+    case GET -> Root / "ml" :? NamesQueryParamMatcher(names) => getPersonsIn(expand(names))
     case GET -> Root / "ml" / name => getPerson(name)
     case GET -> Root / "ml" => listPersons
     case r@POST -> Root / "ml" => newPerson(r)
@@ -28,11 +28,11 @@ class ModernLibsService(db: DB) {
     } yield result
   }
 
-  private def getPersons(names: List[String]) = {
+  private def getPersonsIn(names: List[String]) = {
 
     names.toNel.fold(BadRequest()) { nel =>
       for {
-        dbResult <- db.findAll(nel)
+        dbResult <- db.findAllIn(nel)
         result <- dbResult.map(r => Ok(r.asJson)) getOrElse InternalServerError("server error, probably DB down")
       } yield result
     }

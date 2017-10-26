@@ -26,7 +26,7 @@ class DB {
 
   def list(): Task[Attempt[Seq[Person]]] = queryList().transact(xa).attempt
 
-  def findAll(names: NonEmptyList[String]): Task[Attempt[Seq[Person]]] = queryFindAll(names).transact(xa).attempt
+  def findAllIn(names: NonEmptyList[String]): Task[Attempt[Seq[Person]]] = queryFindAll(names).transact(xa).attempt
 
   def find(n: String): Task[Attempt[Option[Person]]] = queryFind(n).transact(xa).attempt
 
